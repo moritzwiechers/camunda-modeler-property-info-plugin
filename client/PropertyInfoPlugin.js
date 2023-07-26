@@ -27,6 +27,17 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
         });
     });
 
+   eventBus.on('connection.changed', function (event) {
+      _.defer(function () {
+         changeShape(event);
+      });
+   });
+
+   eventBus.on('connection.added', function (event) {
+      _.defer(function () {
+         changeShape(event);
+      });
+   });
 
     editorActions.register({
         togglePropertyOverlays: function () {
@@ -36,7 +47,7 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
 
     function changeShape(event) {
         var element = event.element;
-        if (!(element.businessObject.$instanceOf('bpmn:FlowNode') || element.businessObject.$instanceOf('bpmn:Participant'))) {
+        if (!(isValidElementType(element))) {
             return;
         }
         _.defer(function () {
@@ -52,7 +63,14 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
         delete elementOverlays[element.id];
     }
 
-    function toggleOverlays() {
+
+   function isValidElementType(element) {
+      return element != null && (element.businessObject.$instanceOf('bpmn:SequenceFlow') || element.businessObject.$instanceOf(
+         'bpmn:FlowNode') || element.businessObject.$instanceOf('bpmn:Participant'));
+   }
+
+
+   function toggleOverlays() {
         if (overlaysVisible) {
             overlaysVisible = false;
             if (elementOverlays !== undefined) {
@@ -67,17 +85,49 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
             overlaysVisible = true;
             var elements = elementRegistry.getAll();
             for (var elementCount in elements) {
-                var elementObject = elements[elementCount];
-                if (elementObject.businessObject.$instanceOf('bpmn:FlowNode') || elementObject.businessObject.$instanceOf('bpmn:Participant')) {
-                    addStyle(elementObject);
+                var element = elements[elementCount];
+                if (isValidElementType(element)) {
+                    addStyle(element);
                 }
             }
         }
     }
 
-    function addStyle(element) {
 
-        if (elementOverlays[element.id] !== undefined && elementOverlays[element.id].length !== 0) {
+   function calculateBadgePositionForConnection(element) {
+      if (element.waypoints && element.waypoints.length > 0) {
+         let minX = element.waypoints[0].x, minY = element.waypoints[0].y;
+         for (const waypointsIndex in element.waypoints) {
+            let waypoint = element.waypoints[waypointsIndex];
+            if (waypoint.x < minX) {
+               minX= waypoint.x;
+            }
+            if (waypoint.y < minY) {
+               minY= waypoint.y;
+            }
+         }
+         const wp0X = element.waypoints[0].x;
+         const wp0Y = element.waypoints[0].y;
+         const wp1X = element.waypoints[1].x;
+         const wp1Y = element.waypoints[1].y;
+         const distanceWP1WP2 = Math.sqrt(Math.pow(wp1X-wp0X,2) + Math.pow(wp1Y-wp0Y,2));
+         const ratioOfDistances = 16 / distanceWP1WP2;
+         const locationX = (1-ratioOfDistances)  * wp0X + ratioOfDistances * wp1X;
+         const locationY = (1-ratioOfDistances)  * wp0Y + ratioOfDistances * wp1Y;
+         return {
+            left: locationX - minX,
+            top: locationY - minY
+         };
+      } else {
+         return 'take';
+      }
+   }
+
+
+   function addStyle(element) {
+
+       let extensions;
+       if (elementOverlays[element.id] !== undefined && elementOverlays[element.id].length !== 0) {
             for (var overlay in elementOverlays[element.id]) {
                 overlays.remove(elementOverlays[element.id][overlay]);
             }
@@ -121,9 +171,9 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
 
         if(element.businessObject.$instanceOf('bpmn:Participant')) {
             var extensionElements = element.businessObject.processRef.extensionElements;
-            var extensions = (extensionElements === undefined ? [] : extensionElements.values);
+            extensions = (extensionElements === undefined ? [] : extensionElements.values);
 
-            var type = '&#9654;';
+           var type = '&#9654;';
             var background = 'badge-green';
             if(element.businessObject.processRef.isExecutable === false) {
                 type = '&#10074;&#10074;';
@@ -138,7 +188,7 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
             });
         }
         else {
-            var extensions = element.businessObject.extensionElements.values;
+            extensions = (element.businessObject.extensionElements === undefined ? [] : element.businessObject.extensionElements.values);
         }
 
 
@@ -155,6 +205,10 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
                         location = 'left';
                         key = 'camunda:ExecutionListener-start';
                         sort = 20;
+                    }  else if (extensions[extension].event === 'take') {
+                       key = 'camunda:ExecutionListener-take';
+                       sort = 20;
+                       location = calculateBadgePositionForConnection(element);
                     } else {
                         location = 'right';
                         key = 'camunda:ExecutionListener-end';
@@ -284,7 +338,7 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
                     html: '<div class="badge ' + overlayObject.badgeBackground + '" data-badge="' + overlayObject.badgeType + '"></div>'
                 }));
                 leftCounter = leftCounter + 16;
-            } else {
+            } else if (overlayObject.badgeLocation === 'right') {
                 badges.push(overlays.add(element, 'badge', {
                     position: {
                         bottom: 0,
@@ -293,6 +347,14 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
                     html: '<div class="badge ' + overlayObject.badgeBackground + '" data-badge="' + overlayObject.badgeType + '"></div>'
                 }));
                 rightCounter = rightCounter + 16;
+            } else if (overlayObject.badgeLocation != null && typeof overlayObject.badgeLocation === 'object' && overlayObject.badgeLocation.left != null  && overlayObject.badgeLocation.top != null) {
+               badges.push(overlays.add(element, 'badge', {
+                  position: {
+                     top: overlayObject.badgeLocation.top,
+                     left: overlayObject.badgeLocation.left
+                  },
+                  html: '<div class="badge ' + overlayObject.badgeBackground + '" data-badge="' + overlayObject.badgeType + '"></div>'
+               }));
             }
 
         }
