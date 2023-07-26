@@ -1,3 +1,10 @@
+## This is a fork from <a href="https://github.com/mesoneer-ag/camunda-modeler-property-info-plugin"> mesoneer-ag's plugin</a> with the addition to show badges for SequenceFlows.
+
+The Badge will be positioned 16 px away from the first waypoint of the connection to ensure, that the first waypoint is selectable. 
+
+![image](https://github.com/moritzwiechers/camunda-modeler-property-info-plugin/assets/9558898/17984589-bec1-49f2-867d-3bcb94565aa7)
+
+
 <h1 align="center">
   Camunda Modeler Property Info Plugin
 </h1>
@@ -45,7 +52,6 @@ On macOS you have to create the `plugins` folder in this directoy: `/Users/{USER
 :bulb: Save toggle preferences in modeler<br/>
 :bulb: Add implementation for cmmn<br/>
 :bulb: Show toggle state<br/>
-:bulb: Add implementation for sequence flows
 
 
 ## Licence
