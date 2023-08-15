@@ -223,10 +223,21 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
 
             switch (extensions[extension].$type) {
                 case 'camunda:ExecutionListener':
+                    type = 'L';
+                    background = 'badge-green';
                     if (extensions[extension].event === 'start') {
                         location = 'left';
                         key = 'camunda:ExecutionListener-start';
                         sort = 20;
+                       if(extensions[extension].expression &&  extensions[extension].expression.indexOf('execution.setVariable') > 0 && extensions[extension].expression.indexOf('TaskIstAsynchron') > 0 && extensions[extension].expression.indexOf('true') > 0) {
+                          badges.push({
+                             badgeKey: key+'AS',
+                             badgeSort: sort,
+                             badgeType: 'AS',
+                             badgeBackground: 'badge-red',
+                             badgeLocation: 'top-right'
+                          });
+                       }
                     }  else if (extensions[extension].event === 'take') {
                        key = 'camunda:ExecutionListener-take';
                        sort = 20;
@@ -236,14 +247,24 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
                         key = 'camunda:ExecutionListener-end';
                         sort = 70;
                     }
-                    type = 'L';
-                    background = 'badge-green';
                     break;
                 case 'camunda:Properties':
                     key = 'camunda:Properties';
                     sort = 80;
                     type = 'E';
                     background = 'badge-violet';
+                    if (extensions[extension].values.some(value => value.name === 'relevanterUsertask' && value.value === 'true')) {
+                       badges.push({
+                          badgeKey: key+'RU',
+                          badgeSort: sort,
+                          badgeType: 'RU',
+                          badgeBackground: 'badge-red',
+                          badgeLocation: 'top-right'
+                       });
+                       if(extensions[extension].values.length === 1) {
+                          key = '';
+                       }
+                    }
                     break;
                 case 'camunda:TaskListener':
                     if (extensions[extension].event === 'create' || extensions[extension].event === 'assignment') {
