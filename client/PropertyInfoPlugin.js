@@ -154,6 +154,28 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
             }));
         }
 
+        if(element.businessObject.asyncBefore === true) {
+           elementOverlays[element.id].push(
+              overlays.add(element, {
+                 position: {
+                    left: -6,
+                    top: 0
+                 },
+                 html: '<div class="async-red-line" style="height: ' + element.height + 'px"></div>'
+              }));
+        }
+
+      if(element.businessObject.asyncAfter === true) {
+         elementOverlays[element.id].push(
+            overlays.add(element, {
+               position: {
+                  right: -4,
+                  top: 0
+               },
+               html: '<div class="async-red-line" style="height: ' + element.height + 'px"></div>'
+            }));
+      }
+
         if (element.businessObject.extensionElements === undefined && element.businessObject.$instanceOf('bpmn:FlowNode')) {
             return;
         }

@@ -71,3 +71,8 @@
     overflow: hidden;
     z-index: 9999;
 }
+
+.async-red-line {
+   background-color: red;
+   width: 2px;
+}

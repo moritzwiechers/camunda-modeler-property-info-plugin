@@ -9,14 +9,13 @@
 
 "use strict";
 
-
 var _ = __webpack_require__(/*! lodash */ "./node_modules/lodash/lodash.js");
 
 var elementOverlays = [];
 var overlaysVisible = true;
 
 function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) {
-
+console.log('RELOAD');
     eventBus.on('shape.changed', function (event) {
         _.defer(function () {
             changeShape(event);
@@ -152,7 +151,6 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
 
             var text = element.businessObject.documentation[0].text;
             text = text.replace(/(?:\r\n|\r|\n)/g, '<br />');
-
 
             elementOverlays[element.id].push(
             overlays.add(element, 'badge', {
