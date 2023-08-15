@@ -359,6 +359,7 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
 
         var leftCounter = 0;
         var rightCounter = 0;
+        var topRightCounter = 0;
 
 
         var sortedBadgeList = uniqBy(badgeList, function (item) {
@@ -390,6 +391,16 @@ function PropertyInfoPlugin(eventBus, overlays, elementRegistry, editorActions) 
                     html: '<div class="badge ' + overlayObject.badgeBackground + '" data-badge="' + overlayObject.badgeType + '"></div>'
                 }));
                 rightCounter = rightCounter + 16;
+            } else if (overlayObject.badgeLocation === 'top-right') {
+               badges.push(overlays.add(element, 'badge', {
+                  position: {
+                     top: 0,
+                     right: topRightCounter
+                  },
+                  html: '<div class="badge ' + overlayObject.badgeBackground + '" data-badge="' + overlayObject.badgeType + '"></div>'
+               }));
+               topRightCounter = topRightCounter + 16;
+
             } else if (overlayObject.badgeLocation != null && typeof overlayObject.badgeLocation === 'object' && overlayObject.badgeLocation.left != null  && overlayObject.badgeLocation.top != null) {
                badges.push(overlays.add(element, 'badge', {
                   position: {
