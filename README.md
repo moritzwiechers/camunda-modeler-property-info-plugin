@@ -1,3 +1,8 @@
+## This is a fork from <a href="https://github.com/mesoneer-ag/camunda-modeler-property-info-plugin"> mesoneer-ag's plugin</a> with customization.
+
+<img src="./docs/plugin-example-custom.png"
+         alt="plugin example">
+
 <h1 align="center">
   Camunda Modeler Property Info Plugin
 </h1>
